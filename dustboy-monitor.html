@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dustboy MQTT Monitor (No Install Required)</title>
+    <!-- Use CDN for MQTT.js -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            color: #58a6ff;
+            margin-top: 0;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 10px;
+        }
+
+        #status {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #ff7b72;
+        }
+
+        #log {
+            flex-grow: 1;
+            overflow-y: auto;
+            background: #010409;
+            border: 1px solid #30363d;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .timestamp {
+            color: #8b949e;
+            font-size: 0.9em;
+        }
+
+        .topic {
+            color: #a5d6ff;
+            font-weight: bold;
+        }
+
+        .payload {
+            color: #7ee787;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #238636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            align-self: flex-start;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background-color: #2ea043;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>📡 Dustboy MQTT Monitor</h2>
+    <div id="status">Status: Disconnected 🔴</div>
+    <button onclick="document.getElementById('log').innerHTML = ''">Clear Console</button>
+    <div id="log"></div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const logEl = document.getElementById('log');
+
+        const connectUrl = 'wss://dustboy-wss-bridge.laris.workers.dev/mqtt';
+        const topicName = 'DUSTBOY/+/+/+/status';
+
+        statusEl.innerText = 'Status: Connecting... 🟡';
+
+        // Connect to MQTT via WebSocket
+        const client = mqtt.connect(connectUrl);
+
+        client.on('connect', () => {
+            statusEl.innerText = 'Status: Connected 🟢 (Listening to ' + topicName + ')';
+            statusEl.style.color = '#7ee787';
+            logMsg('SYSTEM', `Successfully connected to ${connectUrl}`);
+
+            client.subscribe(topicName, (err) => {
+                if (!err) {
+                    logMsg('SYSTEM', `Subscribed to topic: ${topicName}`);
+                } else {
+                    logMsg('ERROR', `Subscription error: ${err.message}`);
+                }
+            });
+        });
+
+        client.on('message', (topic, message) => {
+            // message is Buffer
+            const payload = message.toString();
+            logMsg(topic, payload);
+
+            // Auto scroll to bottom
+            logEl.scrollTop = logEl.scrollHeight;
+        });
+
+        client.on('error', (err) => {
+            statusEl.innerText = 'Status: Error 🔴';
+            logMsg('ERROR', err.message);
+        });
+
+        client.on('close', () => {
+            statusEl.innerText = 'Status: Disconnected 🔴';
+            statusEl.style.color = '#ff7b72';
+            logMsg('SYSTEM', 'Connection closed');
+        });
+
+        function logMsg(topic, payload) {
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.style.marginBottom = '8px';
+            div.innerHTML = `<span class="timestamp">[${time}]</span> <span class="topic">${topic}</span><br><span class="payload">${payload}</span>`;
+            logEl.appendChild(div);
+
+            // Keep only last 100 messages to prevent memory issues
+            if (logEl.children.length > 100) {
+                logEl.removeChild(logEl.firstChild);
+            }
+        }
+    </script>
+</body>
+
+</html>

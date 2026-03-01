@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DUSTBOY — Live Air Quality Matrix</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030814;
+            --panel: rgba(5, 18, 45, 0.85);
+            --border: rgba(0, 200, 255, 0.2);
+            --cyan: #00c8ff;
+            --green: #00ff99;
+            --yellow: #ffe066;
+            --orange: #ff9900;
+            --red: #ff4444;
+            --purple: #cc55ff;
+            --text: #b8d4e8;
+            --muted: #4a7a9b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Rajdhani', sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== TOP BAR ===== */
+        #topbar {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            gap: 30px;
+            flex-shrink: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        #topbar h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 12px var(--cyan);
+            white-space: nowrap;
+        }
+
+        .kpi-group {
+            display: flex;
+            gap: 25px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .kpi {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            min-width: 90px;
+            background: rgba(0, 200, 255, 0.04);
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .kpi-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        #conn-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff4444;
+            box-shadow: 0 0 8px #ff4444;
+            flex-shrink: 0;
+            animation: blink 2s infinite;
+        }
+
+        #conn-dot.connected {
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green);
+            animation: none;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        #conn-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        #main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* LEFT: 3D SCENE */
+        #scene-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #scene-container canvas {
+            display: block;
+        }
+
+        #click-hint {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 18px;
+            font-size: 0.8rem;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+        /* RIGHT PANEL */
+        #right-panel {
+            width: 380px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(0, 15, 40, 0.95) 0%, rgba(3, 8, 20, 0.98) 100%);
+            overflow: hidden;
+        }
+
+        /* DETAIL PANE */
+        #detail-pane {
+            padding: 18px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        #detail-pane .pane-title {
+            font-size: 0.65rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+
+        #detail-pane .sensor-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--cyan);
+            text-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+            margin-bottom: 16px;
+        }
+
+        .gauge-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .gauge {
+            flex: 1;
+            background: rgba(0, 200, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gauge::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: var(--fill, 0%);
+            height: 3px;
+            border-radius: 0 0 0 10px;
+            background: var(--color, var(--cyan));
+            box-shadow: 0 0 8px var(--color, var(--cyan));
+            transition: width 0.8s ease;
+        }
+
+        .gauge .g-label {
+            font-size: 0.65rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .gauge .g-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .gauge .g-unit {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-left: 4px;
+        }
+
+        .big-gauge {
+            background: rgba(0, 200, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .big-gauge .aqi-level {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid currentColor;
+        }
+
+        .aqi-bar {
+            height: 6px;
+            border-radius: 3px;
+            margin-top: 8px;
+            background: linear-gradient(90deg, #00e400, #ffff00, #ff7e00, #ff0000, #8f3f97);
+        }
+
+        .aqi-marker {
+            position: relative;
+            margin-top: 4px;
+            height: 16px;
+        }
+
+        .aqi-needle {
+            position: absolute;
+            top: 0;
+            width: 2px;
+            height: 10px;
+            background: white;
+            border-radius: 1px;
+            box-shadow: 0 0 6px white;
+            transform: translateX(-50%);
+            transition: left 0.8s ease;
+        }
+
+        #no-selection {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        #detail-content {
+            display: none;
+        }
+
+        /* SENSOR LIST */
+        #list-pane {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #list-pane .pane-title {
+            font-size: 0.65rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 12px 18px 8px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        #sensor-list {
+            overflow-y: auto;
+            flex: 1;
+            padding: 8px;
+        }
+
+        #sensor-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #sensor-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #sensor-list::-webkit-scrollbar-thumb {
+            background: var(--muted);
+            border-radius: 2px;
+        }
+
+        .sensor-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            margin-bottom: 5px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(0, 200, 255, 0.02);
+        }
+
+        .sensor-card:hover {
+            background: rgba(0, 200, 255, 0.07);
+            border-color: rgba(0, 200, 255, 0.4);
+        }
+
+        .sensor-card.selected {
+            background: rgba(0, 200, 255, 0.1);
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.1);
+        }
+
+        .sc-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .sc-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sc-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sc-sub {
+            font-size: 0.72rem;
+            color: var(--muted);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .sc-pm {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .sc-pm .pm-val {
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .sc-pm .pm-label {
+            font-size: 0.6rem;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        /* Scanlines */
+        #scene-container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.07) 4px);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .new-flash {
+            animation: flash 0.4s ease;
+        }
+
+        @keyframes flash {
+            0% {
+                background: rgba(0, 255, 150, 0.2);
+            }
+
+            100% {
+                background: rgba(0, 200, 255, 0.02);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP STATUS BAR -->
+    <div id="topbar">
+        <h1>⬡ DUSTBOY</h1>
+        <div class="kpi-group">
+            <div class="kpi">
+                <span class="kpi-label">Nodes Online</span>
+                <span class="kpi-value" id="kpi-count" style="color:var(--cyan)">0</span>
+            </div>
+            <div class="kpi">
+                <span class="kpi-label">Peak PM2.5</span>
+                <span class="kpi-value" id="kpi-max" style="color:var(--red)">—</span>
+            </div>
+            <div class="kpi">
+                <span class="kpi-label">Grid Average</span>
+                <span class="kpi-value" id="kpi-avg" style="color:var(--yellow)">—</span>
+            </div>
+            <div class="kpi">
+                <span class="kpi-label">Msg/sec</span>
+                <span class="kpi-value" id="kpi-mps" style="color:var(--green)">0</span>
+            </div>
+        </div>
+        <div id="conn-dot"></div>
+        <span id="conn-label">Connecting...</span>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div id="main">
+
+        <!-- 3D SCENE -->
+        <div id="scene-container">
+            <div id="click-hint">🖱 Click any pillar to inspect sensor</div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div id="right-panel">
+
+            <!-- SELECTED NODE DETAIL -->
+            <div id="detail-pane">
+                <div class="pane-title">Sensor Detail</div>
+
+                <div id="no-selection">
+                    ↑ Click a pillar in the 3D view<br>to see full sensor data here
+                </div>
+
+                <div id="detail-content">
+                    <div class="sensor-name" id="d-name">—</div>
+
+                    <!-- PM2.5 Big Gauge -->
+                    <div class="big-gauge">
+                        <div class="aqi-level" id="d-level">—</div>
+                        <div class="g-label">PM 2.5</div>
+                        <div style="display:flex; align-items:baseline; gap:4px;">
+                            <span class="g-value" id="d-pm25" style="font-size:2.2rem;">—</span>
+                            <span class="g-unit">µg/m³</span>
+                        </div>
+                        <div class="aqi-bar" style="margin-top:10px;"></div>
+                        <div class="aqi-marker">
+                            <div class="aqi-needle" id="d-needle"></div>
+                        </div>
+                    </div>
+
+                    <div class="gauge-row">
+                        <div class="gauge" id="g-pm10" style="--color: var(--cyan)">
+                            <div class="g-label">PM10</div>
+                            <div><span class="g-value" id="d-pm10">—</span><span class="g-unit">µg/m³</span></div>
+                        </div>
+                        <div class="gauge" id="g-pm1" style="--color: #66ddff">
+                            <div class="g-label">PM1</div>
+                            <div><span class="g-value" id="d-pm1">—</span><span class="g-unit">µg/m³</span></div>
+                        </div>
+                    </div>
+
+                    <div class="gauge-row">
+                        <div class="gauge" id="g-temp" style="--color: var(--orange)">
+                            <div class="g-label">Temp</div>
+                            <div><span class="g-value" id="d-temp">—</span><span class="g-unit">°C</span></div>
+                        </div>
+                        <div class="gauge" id="g-humid" style="--color: var(--cyan)">
+                            <div class="g-label">Humidity</div>
+                            <div><span class="g-value" id="d-humid">—</span><span class="g-unit">%</span></div>
+                        </div>
+                        <div class="gauge" id="g-pres" style="--color: var(--purple)">
+                            <div class="g-label">Pressure</div>
+                            <div><span class="g-value" id="d-pres">—</span><span class="g-unit">hPa</span></div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="font-size:0.72rem; color: var(--muted); margin-top:10px; font-family:'Share Tech Mono',monospace; display:flex; justify-content:space-between;">
+                        <span>RSSI: <span id="d-rssi">—</span> dBm</span>
+                        <span>Updated: <span id="d-time">—</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SENSOR LIST -->
+            <div id="list-pane">
+                <div class="pane-title">All Sensors — Real-time Feed</div>
+                <div id="sensor-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // THREE.JS SETUP
+        // =============================================
+        const container = document.getElementById('scene-container');
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x030814, 0.0018);
+
+        const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 3000);
+        camera.position.set(0, 200, 300);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setClearColor(0x030814, 1);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.06;
+        controls.maxPolarAngle = Math.PI / 2 - 0.02;
+
+        // Grid
+        const gridHelper = new THREE.GridHelper(1200, 120, 0x002244, 0x001133);
+        gridHelper.position.y = -0.5;
+        const plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(1200, 1200),
+            new THREE.MeshBasicMaterial({ color: 0x010810, depthWrite: false })
+        );
+        plane.rotation.x = -Math.PI / 2;
+        plane.position.y = -0.8;
+        scene.add(gridHelper, plane);
+
+        // Lighting
+        scene.add(new THREE.AmbientLight(0x112233, 1.5));
+        const dir = new THREE.DirectionalLight(0x4488ff, 0.8);
+        dir.position.set(100, 200, 50);
+        scene.add(dir);
+
+        function resizeScene() {
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            renderer.setSize(w, h);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+        }
+        resizeScene();
+        new ResizeObserver(resizeScene).observe(container);
+
+        // =============================================
+        // DATA LOGIC
+        // =============================================
+        const nodes = new Map();
+        const meshToId = new Map();
+        const nodeGeo = new THREE.BoxGeometry(4, 1, 4);
+        const ringGeo = new THREE.RingGeometry(3, 6, 32);
+
+        let selectedId = null;
+        let camTracking = false;
+        let msgCount = 0;
+
+        // --- CdsTween state for camera ---
+        const camPosX = cdsState(0), camPosY = cdsState(200), camPosZ = cdsState(300);
+        const camTgtX = cdsState(0), camTgtY = cdsState(0), camTgtZ = cdsState(0);
+        let lastTime = performance.now();
+
+        const AQI_COLORS = [
+            { max: 15, hex: 0x00ff99, css: '#00ff99', label: 'Excellent' },
+            { max: 25, hex: 0xffee00, css: '#ffee00', label: 'Good' },
+            { max: 37.5, hex: 0xff9900, css: '#ff9900', label: 'Moderate' },
+            { max: 75, hex: 0xff4444, css: '#ff4444', label: 'Unhealthy' },
+            { max: 999, hex: 0xcc55ff, css: '#cc55ff', label: 'Hazardous' },
+        ];
+
+        function getAQI(pm25) {
+            return AQI_COLORS.find(a => pm25 <= a.max) || AQI_COLORS.at(-1);
+        }
+
+        // =============================================
+        // KLAKMATH JS PORT — v1.0
+        // =============================================
+
+        /**
+         * XXHash — Fast seeded pseudo-random (ported from keijiro/KlakMath)
+         * Returns a float in [0, 1) for a given string seed.
+         */
+        function xxHash(s) {
+            let h = 0x811c9dc5;
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193);
+            }
+            return ((h >>> 0) / 0xFFFFFFFF);
+        }
+
+        function seededRnd(s) { return xxHash(s); }
+
+        /**
+         * ExpTween — Exponential (framerate-independent) tween
+         * Equivalent to: value = lerp(value, target, 1 - exp(-speed * dt))
+         * @param {number} current  Current value
+         * @param {number} target   Target value
+         * @param {number} speed    Higher = snappier (e.g. 5 = medium, 15 = fast)
+         * @param {number} dt       Delta time in seconds
+         */
+        function expTween(current, target, speed, dt) {
+            return target + (current - target) * Math.exp(-speed * dt);
+        }
+
+        /**
+         * CdsTween — Critically Damped Spring (ported from keijiro/KlakMath)
+         * Smoothly tracks a target with realistic spring physics.
+         * No overshooting, no oscillation — feels natural.
+         * @param {object} state  { value, velocity } — mutated in place
+         * @param {number} target Target value
+         * @param {number} omega  Angular frequency (stiffness): 3 = slow, 8 = medium, 15 = fast
+         * @param {number} dt     Delta time in seconds
+         */
+        function cdsTween(state, target, omega, dt) {
+            const n1 = state.velocity - (state.value - target) * (omega * omega * dt);
+            const n2 = 1 + omega * dt;
+            state.velocity = n1 / (n2 * n2);
+            state.value += state.velocity * dt;
+        }
+
+        /** Create a CdsTween state object */
+        function cdsState(initValue) { return { value: initValue, velocity: 0 }; }
+
+        /** Apply CdsTween to a THREE.Vector3, component-wise */
+        function cdsVec3(stateX, stateY, stateZ, target, omega, dt) {
+            cdsTween(stateX, target.x, omega, dt);
+            cdsTween(stateY, target.y, omega, dt);
+            cdsTween(stateZ, target.z, omega, dt);
+        }
+
+        function updateNode(id, d) {
+            const pm25 = parseFloat(d.pm2_5 || d.pm25) || 0;
+            const aqi = getAQI(pm25);
+            let node = nodes.get(id);
+
+            if (!node) {
+                // Compute position: map Thailand lat/lon or pseudo-random
+                const x = (xxHash(id + 'x') - 0.5) * 900;
+                const z = (xxHash(id + 'z') - 0.5) * 900;
+
+                const mat = new THREE.MeshLambertMaterial({
+                    color: aqi.hex, emissive: aqi.hex, emissiveIntensity: 0.6,
+                    transparent: true, opacity: 0.88
+                });
+                const mesh = new THREE.Mesh(nodeGeo, mat);
+                mesh.position.set(x, 0, z);
+
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: aqi.hex, side: THREE.DoubleSide, transparent: true, opacity: 0.6
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = -Math.PI / 2;
+                ring.position.y = 0.2;
+                mesh.add(ring);
+
+                scene.add(mesh);
+                node = { id, mesh, ring, pm25, d, targetH: 1, currentH: cdsState(1) };
+                nodes.set(id, node);
+                meshToId.set(mesh.uuid, id);
+
+                // Render sensor card in list
+                createCard(id);
+            }
+
+            node.pm25 = pm25;
+            node.d = d;
+            node.targetH = Math.max(1, pm25 * 1.3);
+
+            // Flash color
+            node.mesh.material.color.setHex(aqi.hex);
+            node.mesh.material.emissive.setHex(aqi.hex);
+            node.mesh.material.emissiveIntensity = 1.2;
+            node.ring.scale.set(1, 1, 1);
+            node.ring.material.opacity = 0.8;
+
+            updateCard(id, node, aqi);
+            if (selectedId === id) populateDetail(node, aqi);
+        }
+
+        // =============================================
+        // SENSOR CARD IN LIST
+        // =============================================
+        function createCard(id) {
+            const card = document.createElement('div');
+            card.className = 'sensor-card';
+            card.id = `card-${CSS.escape(id)}`;
+            card.innerHTML = `
+            <div class="sc-indicator" id="dot-${CSS.escape(id)}" style="background:#444; color:#444"></div>
+            <div class="sc-info">
+                <div class="sc-name">${id}</div>
+                <div class="sc-sub" id="sub-${CSS.escape(id)}">—</div>
+            </div>
+            <div class="sc-pm">
+                <div class="pm-val" id="pmval-${CSS.escape(id)}" style="color:#888">—</div>
+                <div class="pm-label">µg/m³</div>
+            </div>
+        `;
+            card.addEventListener('click', () => selectNode(id));
+            document.getElementById('sensor-list').prepend(card);
+        }
+
+        function updateCard(id, node, aqi) {
+            const dot = document.getElementById(`dot-${CSS.escape(id)}`);
+            const pmval = document.getElementById(`pmval-${CSS.escape(id)}`);
+            const sub = document.getElementById(`sub-${CSS.escape(id)}`);
+            const card = document.getElementById(`card-${CSS.escape(id)}`);
+            if (!dot) return;
+            dot.style.background = aqi.css;
+            dot.style.color = aqi.css;
+            pmval.style.color = aqi.css;
+            pmval.textContent = node.pm25.toFixed(1);
+            sub.textContent = `T:${(node.d.temperature_c || node.d.temp_c || '—')} °C   H:${parseInt(node.d.humidity_rh || node.d.humid_rh || 0)}%`;
+            card.classList.remove('new-flash');
+            void card.offsetWidth; // reflow
+            card.classList.add('new-flash');
+        }
+
+        // =============================================
+        // DETAIL PANE
+        // =============================================
+        function selectNode(id) {
+            selectedId = id;
+            camTracking = true;
+
+            document.querySelectorAll('.sensor-card').forEach(c => c.classList.remove('selected'));
+            const card = document.getElementById(`card-${CSS.escape(id)}`);
+            if (card) {
+                card.classList.add('selected');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            document.getElementById('no-selection').style.display = 'none';
+            document.getElementById('detail-content').style.display = 'block';
+
+            const node = nodes.get(id);
+            if (node) populateDetail(node, getAQI(node.pm25));
+        }
+
+        function populateDetail(node, aqi) {
+            const d = node.d;
+            const fmt = v => v !== undefined && v !== null ? parseFloat(v).toFixed(1) : '—';
+
+            document.getElementById('d-name').textContent = d.myName || d.nickname || node.id;
+            document.getElementById('d-pm25').textContent = fmt(node.pm25);
+            document.getElementById('d-pm25').style.color = aqi.css;
+            document.getElementById('d-level').textContent = aqi.label;
+            document.getElementById('d-level').style.color = aqi.css;
+            document.getElementById('d-pm10').textContent = fmt(d.pm10);
+            document.getElementById('d-pm1').textContent = fmt(d.pm1);
+            document.getElementById('d-temp').textContent = fmt(d.temperature_c ?? d.temp_c);
+            document.getElementById('d-humid').textContent = fmt(d.humidity_rh ?? d.humid_rh);
+            const pres = d.pressure_pa ? (d.pressure_pa / 100).toFixed(1) : '—';
+            document.getElementById('d-pres').textContent = pres;
+            document.getElementById('d-rssi').textContent = d.rssi ?? '—';
+            document.getElementById('d-time').textContent = new Date().toLocaleTimeString();
+
+            // Needle position (0-100%)
+            const maxPM = 150;
+            const pct = Math.min(100, (node.pm25 / maxPM) * 100);
+            document.getElementById('d-needle').style.left = pct + '%';
+
+            // Gauge fills
+            const setGaugeFill = (el, val, max) => {
+                const pct = Math.min(100, Math.round((val / max) * 100));
+                el.style.setProperty('--fill', pct + '%');
+            };
+            const g = id => document.getElementById(id);
+            setGaugeFill(g('g-pm10'), parseSafe(d.pm10), 200);
+            setGaugeFill(g('g-pm1'), parseSafe(d.pm1), 100);
+            setGaugeFill(g('g-temp'), parseSafe(d.temperature_c ?? d.temp_c), 50);
+            setGaugeFill(g('g-humid'), parseSafe(d.humidity_rh ?? d.humid_rh), 100);
+            setGaugeFill(g('g-pres'), parseSafe(d.pressure_pa ? d.pressure_pa / 100 : 0), 1050);
+        }
+
+        function parseSafe(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+
+        // =============================================
+        // RAYCASTER
+        // =============================================
+        const raycaster = new THREE.Raycaster();
+        const mouse2 = new THREE.Vector2();
+
+        renderer.domElement.addEventListener('pointerdown', e => {
+            mouse2.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
+            mouse2.y = -(e.clientY / renderer.domElement.clientHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse2, camera);
+            const hits = raycaster.intersectObjects([...nodes.values()].map(n => n.mesh));
+            if (hits.length) {
+                const id = meshToId.get(hits[0].object.uuid);
+                if (id) selectNode(id);
+            }
+        });
+
+        // =============================================
+        // MQTT
+        // =============================================
+        const client = mqtt.connect('wss://dustboy-wss-bridge.laris.workers.dev/mqtt');
+
+        client.on('connect', () => {
+            document.getElementById('conn-dot').classList.add('connected');
+            document.getElementById('conn-label').textContent = 'Live';
+            client.subscribe('DUSTBOY/+/+/+/status');
+        });
+
+        client.on('message', (topic, msg) => {
+            msgCount++;
+            try {
+                const payload = msg.toString();
+                if (payload === 'offline') return;
+                const data = JSON.parse(payload);
+                const parts = topic.split('/');
+                const id = parts[parts.length - 2] || 'unknown';
+                if (data.d && data.d.pm2_5 !== undefined) {
+                    updateNode(id, data.d);
+                }
+            } catch (_) { }
+        });
+
+        // =============================================
+        // STATS UPDATE
+        // =============================================
+        setInterval(() => {
+            document.getElementById('kpi-mps').textContent = msgCount;
+            document.getElementById('kpi-count').textContent = nodes.size;
+            msgCount = 0;
+
+            let maxV = 0, sum = 0;
+            nodes.forEach(n => { if (n.pm25 > maxV) maxV = n.pm25; sum += n.pm25; });
+            document.getElementById('kpi-max').textContent = nodes.size ? maxV.toFixed(1) : '—';
+            document.getElementById('kpi-avg').textContent = nodes.size ? (sum / nodes.size).toFixed(1) : '—';
+        }, 1000);
+
+        // =============================================
+        // ANIMATION LOOP
+        // =============================================
+        const _idealCamPos = new THREE.Vector3();
+        const _idealTgt = new THREE.Vector3();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const now = performance.now();
+            const dt = Math.min((now - lastTime) / 1000, 0.05); // cap at 50ms
+            lastTime = now;
+
+            nodes.forEach(node => {
+                // --- ExpTween: fast snap height (pillar rise/fall) ---
+                node.currentH.value = expTween(node.currentH.value, node.targetH, 4, dt);
+                node.mesh.scale.y = node.currentH.value;
+                node.mesh.position.y = node.currentH.value / 2;
+
+                if (node.mesh.material.emissiveIntensity > 0.5)
+                    node.mesh.material.emissiveIntensity -= 0.04;
+
+                node.ring.scale.x += 0.06;
+                node.ring.scale.z += 0.06;
+                node.ring.material.opacity -= 0.018;
+                if (node.ring.material.opacity < 0) node.ring.material.opacity = 0;
+            });
+
+            if (camTracking && selectedId) {
+                const n = nodes.get(selectedId);
+                if (n) {
+                    // --- CdsTween: spring-physics camera tracking ---
+                    _idealCamPos.copy(n.mesh.position).add(new THREE.Vector3(25, 35, 55));
+                    _idealTgt.copy(n.mesh.position);
+
+                    cdsVec3(camPosX, camPosY, camPosZ, _idealCamPos, 5, dt);
+                    cdsVec3(camTgtX, camTgtY, camTgtZ, _idealTgt, 5, dt);
+
+                    camera.position.set(camPosX.value, camPosY.value, camPosZ.value);
+                    controls.target.set(camTgtX.value, camTgtY.value, camTgtZ.value);
+                }
+            } else {
+                // sync CdsTween state to wherever user dragged the camera
+                camPosX.value = camera.position.x;
+                camPosY.value = camera.position.y;
+                camPosZ.value = camera.position.z;
+                camPosX.velocity = camPosY.velocity = camPosZ.velocity = 0;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+<script src=" https://little082003.github.io/portfolio-nav.js\></script>
+</body>
+
+</html>

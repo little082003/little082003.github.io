@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kantawich Mongkolkeha - CV</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --text-light: #9ca3af;
+            --bg-page: #0a0a0f;
+            /* Match the portfolio's dark vibe for outside the A4 */
+            --bg-paper: #ffffff;
+            --accent: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            font-family: 'Prompt', sans-serif;
+            color: var(--text-main);
+            line-height: 1.5;
+            display: flex;
+            justify-content: center;
+            padding: 3rem 1rem;
+        }
+
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            background: var(--bg-paper);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 32% 68%;
+            border-radius: 4px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 3rem 2rem;
+            position: relative;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), transparent);
+            pointer-events: none;
+        }
+
+        .profile-area {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            color: #e2e8f0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .contact-info {
+            list-style: none;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .contact-info li {
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #cbd5e1;
+            word-break: break-word;
+        }
+
+        .contact-info i {
+            width: 20px;
+            color: #60a5fa;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .skills-list {
+            position: relative;
+            z-index: 1;
+        }
+
+        .skill-item {
+            margin-bottom: 1rem;
+        }
+
+        .skill-name {
+            font-size: 0.8rem;
+            margin-bottom: 0.4rem;
+            display: flex;
+            justify-content: space-between;
+            color: #e2e8f0;
+        }
+
+        .skill-bar-bg {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .skill-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            border-radius: 3px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 3.5rem 2.5rem;
+        }
+
+        .header {
+            margin-bottom: 2.5rem;
+        }
+
+        .name-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.1;
+            margin-bottom: 0.4rem;
+            letter-spacing: -1px;
+        }
+
+        .name-th {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+        }
+
+        .job-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #111827;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.4rem;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .text-body {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: justify;
+        }
+
+        /* Timeline / Experience */
+        .timeline {
+            position: relative;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 1.5rem;
+            border-left: 2px solid #e5e7eb;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--bg-paper);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            left: -6px;
+            top: 4px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.2rem;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: #111827;
+        }
+
+        .timeline-date {
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-weight: 600;
+            background: #eff6ff;
+            padding: 0.2rem 0.5rem;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        .timeline-subtitle {
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .timeline-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .timeline-list {
+            margin-top: 0.5rem;
+            padding-left: 1.2rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .timeline-list li {
+            margin-bottom: 0.3rem;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .project-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1rem;
+            border-left: 3px solid var(--accent);
+        }
+
+        .project-card h4 {
+            font-size: 0.95rem;
+            color: #1e293b;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .project-card p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .fab:hover {
+            transform: translateY(-5px);
+            background: var(--primary-dark);
+        }
+
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+
+            .a4-container {
+                box-shadow: none;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .fab {
+                display: none !important;
+            }
+
+            .sidebar {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .profile-pic,
+            .skill-bar-fill,
+            .timeline-item::before,
+            .timeline-date,
+            .project-card {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .a4-container {
+                grid-template-columns: 1fr;
+                width: 100%;
+                height: auto;
+            }
+
+            body {
+                padding: 0;
+            }
+
+            .a4-container {
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="a4-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="profile-area">
+                <div class="profile-pic">KM</div>
+            </div>
+
+            <ul class="contact-info">
+                <li><i class="fa-solid fa-envelope"></i> admin@example.com</li>
+                <li><i class="fa-solid fa-phone"></i> 08X-XXX-XXXX</li>
+                <li><i class="fa-solid fa-location-dot"></i> พิษณุโลก, ประเทศไทย</li>
+                <li><i class="fa-brands fa-linkedin"></i> linkedin.com/in/kantawich</li>
+            </ul>
+
+            <h2><i class="fa-solid fa-lightbulb"></i> Soft Skills</h2>
+            <div class="skills-list" style="margin-bottom: 2.5rem;">
+                <div class="skill-item">
+                    <div class="skill-name"><span>ภาวะผู้นำ (Leadership)</span> <span>90%</span></div>
+                    <div class="skill-bar-bg">
+                        <div class="skill-bar-fill" style="width: 90%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>การประสานงานเป็นทีม</span> <span>95%</span></div>
+                    <div class="skill-bar-bg">
+                        <div class="skill-bar-fill" style="width: 95%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>บริหารโครงการ</span> <span>85%</span></div>
+                    <div class="skill-bar-bg">
+                        <div class="skill-bar-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>การสื่อสารนโยบาย</span> <span>88%</span></div>
+                    <div class="skill-bar-bg">
+                        <div class="skill-bar-fill" style="width: 88%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h2><i class="fa-solid fa-wrench"></i> Hard Skills</h2>
+            <div class="skills-list">
+                <div class="skill-item">
+                    <div class="skill-name"><span>ความเข้าใจเชิงโครงสร้าง/งานช่าง</span> <span>85%</span></div>
+                    <div class="skill-bar-bg">
+                        <div class="skill-bar-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>Learning by Doing</span> <span>98%</span></div>
+                    <div class="skill-bar-bg">
+                        <div class="skill-bar-fill" style="width: 98%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>การแก้ปัญหาเชิงเทคนิค</span> <span>80%</span></div>
+                    <div class="skill-bar-bg">
+                        <div class="skill-bar-fill" style="width: 80%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <h1 class="name-title">Kantawich M.</h1>
+                <div class="name-th">กันตะวิชญ์ มงคลเคหา</div>
+                <div class="job-title">Future Professional Leader & Engineering Enthusiast</div>
+            </header>
+
+            <section class="section">
+                <h3 class="section-title"><i class="fa-regular fa-user"></i> ประวัติส่วนตัว (Profile)</h3>
+                <p class="text-body">
+                    ความสนใจด้านงานช่างและวิศวกรรม เริ่มต้นจากการศึกษาพระราชกรณียกิจด้านการต่อเรือของรัชกาลที่ 9 ในวัย
+                    13 ปี ซึ่งหล่อหลอมให้เกิดความหลงใหลในโครงสร้างทางวิศวกรรมและการสร้างสรรค์
+                    มีวิสัยทัศน์ในการนำหลักการทางวิศวกรรม เช่น ความสมดุล (Stability) การขับเคลื่อน (Propulsion)
+                    และการนำทาง (Navigation) มาประยุกต์ใช้ในการบริหารองค์กรและการทำงานเป็นทีม
+                    พร้อมมุ่งมั่นพัฒนาตนเองสู่การเป็นผู้นำและกลุ่มแรงงานผู้เชี่ยวชาญ (Smart Workers)
+                    เพื่อตอบโจทย์ยุคสมัย
+                </p>
+            </section>
+
+            <section class="section">
+                <h3 class="section-title"><i class="fa-solid fa-graduation-cap"></i> ประวัติการศึกษา (Education)</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-header">
+                            <h4 class="timeline-title">วิทยาลัยสารพัดช่างพิษณุโลก</h4>
+                            <span class="timeline-date">ปัจจุบัน</span>
+                        </div>
+                        <div class="timeline-subtitle">ระดับอาชีวศึกษา</div>
+                        <p class="timeline-desc">
+                            ก้าวเข้าสู่เส้นทางอาชีวศึกษาเพื่อพัฒนาตนเองสู่การเป็นกลุ่มแรงงานผู้เชี่ยวชาญ (Smart Workers)
+                            ตอบโจทย์ Thailand 4.0 โดยเน้นการเรียนรู้จากการปฏิบัติจริง (Learning by Doing)</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-header">
+                            <h4 class="timeline-title">ระดับชั้นมัธยมศึกษาตอนต้น</h4>
+                            <span class="timeline-date">พ.ศ. 2560</span>
+                        </div>
+                        <div class="timeline-subtitle">ชั้นมัธยมศึกษาปีที่ 1 จังหวัดพิษณุโลก</div>
+                        <p class="timeline-desc">
+                            จุดเริ่มต้นของการสร้างจิตสำนึกพลเมืองและการบริหารงานผ่านกิจกรรมนิทรรศการเฉลิมพระเกียรติ</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h3 class="section-title"><i class="fa-solid fa-briefcase"></i> บทบาทและภาวะผู้นำ (Leadership Roles)
+                </h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-header">
+                            <h4 class="timeline-title">คณะกรรมการบริหาร (กรรมการ)</h4>
+                            <span class="timeline-date">ปัจจุบัน</span>
+                        </div>
+                        <div class="timeline-subtitle">องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.)</div>
+                        <ul class="timeline-list">
+                            <li>ร่วมวางแผนนโยบายและตรวจสอบการทำงานของฝ่ายต่างๆ ภายในองค์กร</li>
+                            <li>เป็นตัวแทนของสถาบันในการประชุมระดับจังหวัดและระดับภาค</li>
+                            <li>ส่งเสริมวิถีประชาธิปไตยและการบริหารจัดการอย่างเป็นระบบในสถานศึกษา</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h3 class="section-title"><i class="fa-solid fa-hands-holding-circle"></i> โครงการและกิจกรรม (Projects &
+                    Activities)</h3>
+                <div class="projects-grid">
+                    <div class="project-card">
+                        <h4><i class="fa-solid fa-toolbox" style="color:var(--primary); margin-right:5px;"></i> Fix it
+                            Center</h4>
+                        <p>ศูนย์ซ่อมสร้างเพื่อชุมชน
+                            นำความรู้ด้านช่างไปแก้ไขปัญหาและบริการประชาชนในพื้นที่อย่างเป็นรูปธรรม</p>
+                    </div>
+                    <div class="project-card">
+                        <h4><i class="fa-solid fa-medal" style="color:var(--accent); margin-right:5px;"></i> VEC Skills
+                        </h4>
+                        <p>การบริหารจัดการและประสานงานสำหรับการแข่งขันทักษะวิชาชีพระดับอาชีวศึกษา (อศจ.)</p>
+                    </div>
+                    <div class="project-card" style="grid-column: 1 / -1;">
+                        <h4><i class="fa-solid fa-hand-holding-heart" style="color:#10b981; margin-right:5px;"></i>
+                            จิตอาสาบำเพ็ญประโยชน์</h4>
+                        <p>สืบสานพระราชปณิธานผ่านการทำกิจกรรมบำเพ็ญประโยชน์ต่อสังคมด้วยใจอาสา</p>
+                    </div>
+                    <div class="project-card" style="grid-column: 1 / -1; border-left-color: #3B82F6;">
+                        <h4><i class="fa-solid fa-droplet" style="color:#3B82F6; margin-right:5px;"></i>
+                            FloodBoy Blockchain Monitor
+                            <a href="https://little082003.github.io/floodboy-monitor/" target="_blank"
+                                style="margin-left:8px; font-size:0.75rem; color:#3B82F6; font-weight:400;">↗
+                                ดูผลงาน</a>
+                        </h4>
+                        <p>Web App อ่านข้อมูล IoT Sensor แบบ Real-time จาก JIBCHAIN L1 Blockchain โดยใช้
+                            <strong>Viem.js</strong> และ <strong>Chart.js</strong> แสดงระดับน้ำ (FloodBoy016)
+                            และแรงดันไฟฟ้า พร้อม Historical Chart แบบ Toggle ได้
+                        </p>
+                    </div>
+                    <div class="project-card" style="grid-column: 1 / -1; border-left-color: #fbbf24;">
+                        <h4><i class="fa-solid fa-flag-checkered" style="color:#fbbf24; margin-right:5px;"></i>
+                            Oracle Racer 3D (Three.js & MQTT)
+                            <a href="https://little082003.github.io/oracle-racer/" target="_blank"
+                                style="margin-left:8px; font-size:0.75rem; color:#fbbf24; font-weight:400;">↗
+                                เล่นเกม</a>
+                        </h4>
+                        <p>เกมแข่งวิ่ง 3D Anime แบบ <strong>Real-Time</strong> เรนเดอร์ด้วย <strong>Three.js</strong>
+                            พร้อมระบบ Auto-Scale โมเดล และเชื่อมต่อผู้เล่นผ่าน MQTT Protocol โดยใช้ Retain Message
+                            บันทึก Hall of Fame</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Print Button -->
+    <div class="fab" onclick="window.print()" title="พิมพ์ / บันทึกเป็น PDF">
+        <i class="fa-solid fa-print"></i>
+    </div>
+
+</body>
+
+</html>

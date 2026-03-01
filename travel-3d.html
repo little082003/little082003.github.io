@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immersive SRT Railway: เชียงใหม่ → พิษณุโลก</title>
+    <style>
+        :root {
+            --bg-color: #87CEEB;
+            /* Sky blue */
+            --accent-color: #2e7d32;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        /* Modern Glassmorphism UI */
+        #hud-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            margin: 0 0 5px 0;
+            font-size: 1.6rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 0;
+        }
+
+        .station-hud {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .station-icon {
+            font-size: 2rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .station-info h3 {
+            margin: 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a5d6a7;
+        }
+
+        .station-info p {
+            margin: 5px 0 0 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Settings Panel */
+        #settings-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 20;
+            pointer-events: auto;
+        }
+
+        .setting-group {
+            margin-top: 15px;
+        }
+
+        .setting-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            color: #e8f5e9;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        select,
+        input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-family: inherit;
+            outline: none;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+        }
+
+        select option {
+            background: #2e7d32;
+            color: white;
+        }
+
+        #footer {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        #footer b {
+            color: #a5d6a7;
+        }
+
+        #loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: white;
+            flex-direction: column;
+            transition: opacity 1s ease;
+        }
+
+        .train-spinner {
+            font-size: 3rem;
+            animation: bounce 1s infinite alternate;
+            margin-bottom: 20px;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <div class="train-spinner">🚂</div>
+        <h3>กำลังสร้างโลกจำลองทางรถไฟ...</h3>
+        <p style="color:#aaa; font-size:0.9rem;">(Generating Terrain & Real SRT Routes)</p>
+    </div>
+
+    <div id="hud-container">
+        <div class="glass-panel">
+            <h1>🚂 การรถไฟแห่งประเทศไทย</h1>
+            <p class="subtitle">สายเหนือ: เชียงใหม่ → พิษณุโลก</p>
+        </div>
+
+        <div class="glass-panel station-hud">
+            <div class="station-icon">📍</div>
+            <div class="station-info">
+                <h3>สถานีถัดไป / ตำแหน่งปัจจุปัน</h3>
+                <p id="ui-station">สถานีเชียงใหม่</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-panel" class="glass-panel">
+        <h3 style="margin-top:0; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px;">⚙️ การควบคุม</h3>
+
+        <div class="setting-group">
+            <label>🎥 โหมดมุมกล้อง (กันมึนหัว)</label>
+            <select id="camera-mode">
+                <option value="drone">มุมมองโดรน (สบายตาที่สุด)</option>
+                <option value="chase">มุมมองติดตามรถไฟ (สมจริง)</option>
+                <option value="cab">มุมมองคนขับ (ตื่นเต้น)</option>
+                <option value="free">หมุนอิสระ (ใช้เมาส์)</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label>⚡ ความเร็วรถไฟด่วนพิเศษ</label>
+            <input type="range" id="speed-slider" min="0.0001" max="0.005" step="0.0001" value="0.001">
+        </div>
+
+        <div class="setting-group">
+            <label>⏱️ เวลาในโลก</label>
+            <select id="time-mode">
+                <option value="day">กลางวัน (แดดร่มลมตก)</option>
+                <option value="sunset">พระอาทิตย์ตก (โรแมนติก)</option>
+                <option value="night">กลางคืน (ดวงดาว)</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+    <div id="footer">World Built by <b>Nano — The Adaptive Library</b></div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Real SRT Northern Line approximate key waypoints
+        const srtStations = [
+            { name: "สถานีเชียงใหม่", lat: 18.7842, lon: 99.0175 },
+            { name: "สถานีลำพูน", lat: 18.5905, lon: 99.0069 },
+            { name: "โค้งขุนตาน (ภูเขา)", lat: 18.4907, lon: 99.2687 },
+            { name: "สถานีนครลำปาง", lat: 18.2831, lon: 99.4794 },
+            { name: "สถานีแม่เมาะ", lat: 18.2619, lon: 99.6468 },
+            { name: "สถานีเด่นชัย", lat: 17.9719, lon: 100.0475 },
+            { name: "สถานีศิลาอาสน์", lat: 17.6527, lon: 100.0984 },
+            { name: "สถานีอุตรดิตถ์", lat: 17.6186, lon: 100.1009 },
+            { name: "สถานีพิชัย", lat: 17.2882, lon: 100.0881 },
+            { name: "สถานีพรหมพิราม", lat: 17.0345, lon: 100.1983 },
+            { name: "สถานีพิษณุโลก", lat: 16.8122, lon: 100.2662 }
+        ];
+
+        // System state
+        let scene, camera, renderer, controls;
+        let train, railwayCurve, terrain;
+        let trainSpeed = 0.001; // Progress percentage per frame
+        let trainProgress = 0;
+        let currentCamMode = 'drone';
+        let stars;
+
+        // Lighting
+        let hemiLight, sunLight;
+
+        const WORLD_SCALE = 150;
+        const curvePoints3D = [];
+        let stationMarkers = [];
+
+        init();
+
+        function init() {
+            const container = document.getElementById('canvas-container');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.004); // Adds depth and hides rendering edge
+
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 2000);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            // Enhanced shading
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.05; // Prevent looking below ground
+
+            setupLighting();
+            buildWorld();
+            setupUI();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 1000);
+
+                // Start animation loop
+                requestAnimationFrame(animate);
+            }, 1000);
+        }
+
+        function setupLighting() {
+            hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+            hemiLight.position.set(0, 200, 0);
+            scene.add(hemiLight);
+
+            sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            sunLight.position.set(100, 150, 50);
+            sunLight.castShadow = true;
+            sunLight.shadow.camera.top = 200;
+            sunLight.shadow.camera.bottom = -200;
+            sunLight.shadow.camera.left = -200;
+            sunLight.shadow.camera.right = 200;
+            sunLight.shadow.camera.near = 0.1;
+            sunLight.shadow.camera.far = 500;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            scene.add(sunLight);
+        }
+
+        function buildWorld() {
+            // Normalize Coordinates
+            let sumLat = 0, sumLon = 0;
+            srtStations.forEach(s => { sumLat += s.lat; sumLon += s.lon; });
+            const cLat = sumLat / srtStations.length;
+            const cLon = sumLon / srtStations.length;
+
+            // Generate Path Coordinates
+            srtStations.forEach((s, i) => {
+                const x = (s.lon - cLon) * WORLD_SCALE;
+                const z = -(s.lat - cLat) * WORLD_SCALE;
+                // Add some artificial elevation for Khun Tan mountain area
+                const y = (i === 2 || i === 3) ? 15 : 0;
+                curvePoints3D.push(new THREE.Vector3(x, y, z));
+
+                s.worldX = x; s.worldY = y; s.worldZ = z;
+            });
+
+            // Smooth Railway Spline
+            railwayCurve = new THREE.CatmullRomCurve3(curvePoints3D);
+            // Tension for smoothing the railway
+            railwayCurve.tension = 0.5;
+
+            // Get uniform track samples to shape the terrain properly
+            const trackSamples = railwayCurve.getSpacedPoints(200);
+
+            // 1. Build Terrain (Low Poly)
+            const terrainGeo = new THREE.PlaneGeometry(1500, 1500, 80, 80);
+            terrainGeo.rotateX(-Math.PI / 2);
+
+            const vertices = terrainGeo.attributes.position.array;
+            for (let i = 0; i < vertices.length; i += 3) {
+                const vx = vertices[i];
+                const vz = vertices[i + 2];
+
+                let minDist = Infinity;
+                let nearestTrackY = 0;
+                for (let pt of trackSamples) {
+                    const dist = Math.hypot(vx - pt.x, vz - pt.z);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestTrackY = pt.y;
+                    }
+                }
+
+                if (minDist < 35) {
+                    // Flat ground directly beneath track
+                    vertices[i + 1] = nearestTrackY - 2 + (Math.random() - 0.5) * 0.5;
+                } else {
+                    // Hills outside track
+                    const heightRise = (minDist - 35) * 0.15;
+                    const noiseY = Math.sin(vx * 0.05) * Math.cos(vz * 0.05) * 20;
+                    vertices[i + 1] = nearestTrackY - 2 + Math.max(0, heightRise + noiseY * Math.min(1, minDist / 150));
+                }
+            }
+            terrainGeo.computeVertexNormals();
+
+            const terrainMat = new THREE.MeshStandardMaterial({
+                color: 0x4caf50,
+                flatShading: true,
+                roughness: 0.8,
+                metalness: 0.1
+            });
+            terrain = new THREE.Mesh(terrainGeo, terrainMat);
+            terrain.receiveShadow = true;
+            terrain.position.y = -1; // Slightly below tracks
+            scene.add(terrain);
+
+            // 2. Build Railway Track (Extruded Tube)
+            const trackGeo = new THREE.TubeGeometry(railwayCurve, 400, 0.4, 8, false);
+            const trackMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5 });
+            const trackMesh = new THREE.Mesh(trackGeo, trackMat);
+            trackMesh.receiveShadow = true;
+            scene.add(trackMesh);
+
+            // Add Sleepers (ไม้หมอน)
+            const sleeperGeo = new THREE.BoxGeometry(2.5, 0.2, 0.4);
+            const sleeperMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
+            const sleeperInstanced = new THREE.InstancedMesh(sleeperGeo, sleeperMat, 800);
+            const dummy = new THREE.Object3D();
+
+            for (let i = 0; i < 800; i++) {
+                const t = i / 800;
+                const pt = railwayCurve.getPointAt(t);
+                const tangent = railwayCurve.getTangentAt(t);
+
+                dummy.position.copy(pt);
+                dummy.position.y -= 0.2;
+                // Look along the tangent, then rotate 90 deg so sleeper is perpendicular
+                const lookTarget = pt.clone().add(tangent);
+                dummy.lookAt(lookTarget);
+                dummy.rotateY(Math.PI / 2);
+                dummy.updateMatrix();
+
+                sleeperInstanced.setMatrixAt(i, dummy.matrix);
+            }
+            sleeperInstanced.receiveShadow = true;
+            scene.add(sleeperInstanced);
+
+            // 3. Build Stations
+            const stationGeo = new THREE.CylinderGeometry(2, 2, 0.5, 16);
+            const stationMat = new THREE.MeshStandardMaterial({ color: 0xffeb3b, emissive: 0x333300 });
+
+            srtStations.forEach(s => {
+                const mesh = new THREE.Mesh(stationGeo, stationMat);
+                mesh.position.set(s.worldX, s.worldY, s.worldZ);
+                mesh.receiveShadow = true;
+                scene.add(mesh);
+                stationMarkers.push(mesh);
+            });
+
+            // 4. Build Train
+            train = createTrainModel();
+            scene.add(train);
+
+            // 5. Build Environment (Low Poly Trees)
+            createForest(trackSamples);
+
+            // 6. Build Stars
+            const starGeo = new THREE.BufferGeometry();
+            const starVerts = [];
+            for (let i = 0; i < 1500; i++) {
+                starVerts.push((Math.random() - 0.5) * 2000, Math.random() * 200 + 100, (Math.random() - 0.5) * 2000);
+            }
+            starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
+            const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 2 });
+            stars = new THREE.Points(starGeo, starMat);
+            stars.visible = false;
+            scene.add(stars);
+        }
+
+        function createTrainModel() {
+            const group = new THREE.Group();
+
+            // Modern Diesel Locomotive Colors
+            const mainMat = new THREE.MeshStandardMaterial({ color: 0xb71c1c, roughness: 0.2, metalness: 0.5 }); // Dark Red SRT
+            const roofMat = new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 0.5 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+            const glassMat = new THREE.MeshPhysicalMaterial({ color: 0x111111, transmission: 0.5, transparent: true });
+
+            // Engine Body
+            const body = new THREE.Mesh(new THREE.BoxGeometry(2, 2.5, 6), mainMat);
+            body.position.y = 1.8;
+            body.castShadow = true;
+            group.add(body);
+
+            // Roof
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.3, 6.1), roofMat);
+            roof.position.y = 3.2;
+            roof.castShadow = true;
+            group.add(roof);
+
+            // Windshield
+            const glass = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1), glassMat);
+            glass.position.set(0, 2.5, 3.01);
+            group.add(glass);
+
+            // Wheels
+            const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.3, 16);
+            wheelGeo.rotateZ(Math.PI / 2);
+            const wheelPos = [
+                [-1.1, 0.5, 2], [1.1, 0.5, 2],
+                [-1.1, 0.5, 0], [1.1, 0.5, 0],
+                [-1.1, 0.5, -2], [1.1, 0.5, -2]
+            ];
+            wheelPos.forEach(pos => {
+                const w = new THREE.Mesh(wheelGeo, darkMat);
+                w.position.set(...pos);
+                w.castShadow = true;
+                group.add(w);
+            });
+
+            // Headlight
+            const light = new THREE.SpotLight(0xffffee, 2, 100, Math.PI / 6, 0.5, 1);
+            light.position.set(0, 2, 3);
+            light.target.position.set(0, 0, 10);
+            group.add(light);
+            group.add(light.target);
+
+            // Scale down slightly for realism against tracks
+            group.scale.set(0.6, 0.6, 0.6);
+            return group;
+        }
+
+        function createForest(trackSamples) {
+            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 1);
+            const leavesGeo = new THREE.ConeGeometry(1, 3, 5);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
+            const leavesMat = new THREE.MeshStandardMaterial({ color: 0x2e7d32, flatShading: true });
+
+            const treeGroup = new THREE.Group();
+
+            for (let i = 0; i < 500; i++) {
+                const x = (Math.random() - 0.5) * 1200;
+                const z = (Math.random() - 0.5) * 1200;
+
+                // Keep away from tracks and get correct height
+                let minDist = Infinity;
+                let nearestTrackY = 0;
+                for (let pt of trackSamples) {
+                    const dist = Math.hypot(x - pt.x, z - pt.z);
+                    if (dist < minDist) { minDist = dist; nearestTrackY = pt.y; }
+                }
+
+                if (minDist < 40) continue; // Keep trees safely away from track
+
+                // Calculate same procedural elevation as terrain
+                const heightRise = (minDist - 35) * 0.15;
+                const noiseY = Math.sin(x * 0.05) * Math.cos(z * 0.05) * 20;
+                const terrainY = nearestTrackY - 2 + Math.max(0, heightRise + noiseY * Math.min(1, minDist / 150));
+
+                const tree = new THREE.Group();
+                const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                trunk.position.y = 0.5;
+                const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+                leaves.position.y = 2;
+                tree.add(trunk, leaves);
+
+                tree.position.set(x, terrainY, z);
+
+                // Random scale
+                const scale = 0.8 + Math.random() * 1.5;
+                tree.scale.set(scale, scale, scale);
+
+                treeGroup.add(tree);
+            }
+            scene.add(treeGroup);
+        }
+
+        function setupUI() {
+            document.getElementById('camera-mode').addEventListener('change', (e) => {
+                currentCamMode = e.target.value;
+            });
+
+            document.getElementById('speed-slider').addEventListener('input', (e) => {
+                trainSpeed = parseFloat(e.target.value);
+            });
+
+            document.getElementById('time-mode').addEventListener('change', (e) => {
+                const mode = e.target.value;
+                if (mode === 'day') {
+                    scene.background.setHex(0x87CEEB);
+                    scene.fog.color.setHex(0x87CEEB);
+                    sunLight.color.setHex(0xffffff);
+                    sunLight.intensity = 0.8;
+                    hemiLight.intensity = 0.6;
+                    if (stars) stars.visible = false;
+                } else if (mode === 'sunset') {
+                    scene.background.setHex(0xff7e5f);
+                    scene.fog.color.setHex(0xff7e5f);
+                    sunLight.color.setHex(0xffb74d);
+                    sunLight.intensity = 0.6;
+                    hemiLight.intensity = 0.3;
+                    if (stars) stars.visible = false;
+                } else if (mode === 'night') {
+                    scene.background.setHex(0x0a0a1a);
+                    scene.fog.color.setHex(0x0a0a1a);
+                    sunLight.intensity = 0.1;
+                    hemiLight.intensity = 0.1;
+                    if (stars) stars.visible = true;
+                }
+            });
+        }
+
+        function getClosestStation(t) {
+            // Find which segment of the journey we are on
+            const index = Math.min(Math.floor(t * (srtStations.length - 1)), srtStations.length - 2);
+            return srtStations[index + 1].name;
+        }
+
+        // Camera damping physics
+        const cameraFollowTarget = new THREE.Vector3();
+
+        // =============================================
+        // KLAKMATH JS PORT — v1.0
+        // =============================================
+
+        /** ExpTween (framerate-independent exponential interpolation) */
+        function expTween(current, target, speed, dt) {
+            return target + (current - target) * Math.exp(-speed * dt);
+        }
+
+        /** CdsTween state object constructor */
+        function cdsState(v) { return { value: v, velocity: 0 }; }
+
+        /** Critically Damped Spring step (ported from keijiro/KlakMath) */
+        function cdsTween(state, target, omega, dt) {
+            const n1 = state.velocity - (state.value - target) * (omega * omega * dt);
+            const n2 = 1 + omega * dt;
+            state.velocity = n1 / (n2 * n2);
+            state.value += state.velocity * dt;
+        }
+
+        /** Apply CdsTween per-component to a THREE.Vector3 */
+        function cdsVec3(sx, sy, sz, tgt, omega, dt) {
+            cdsTween(sx, tgt.x, omega, dt); cdsTween(sy, tgt.y, omega, dt); cdsTween(sz, tgt.z, omega, dt);
+        }
+
+        // CdsTween state for camera and look-target
+        const camX = cdsState(0), camY = cdsState(60), camZ = cdsState(150);
+        const tgtX = cdsState(0), tgtY = cdsState(0), tgtZ = cdsState(0);
+        let lastTimeTrain = performance.now();
+
+        function animate() {
+            if (train) {
+                trainProgress += trainSpeed;
+                if (trainProgress >= 1) trainProgress = 0;
+
+                const pos = railwayCurve.getPointAt(trainProgress);
+                const tangent = railwayCurve.getTangentAt(trainProgress);
+
+                train.position.copy(pos);
+                train.lookAt(pos.clone().add(tangent));
+
+                document.getElementById('ui-station').innerText = getClosestStation(trainProgress);
+
+                // Delta time (framerate-independent)
+                const now2 = performance.now();
+                const dt = Math.min((now2 - lastTimeTrain) / 1000, 0.05);
+                lastTimeTrain = now2;
+
+                // ==========================================
+                // ANTI-MOTION SICKNESS CAMERA (KlakMath)
+                // ==========================================
+                if (currentCamMode === 'drone') {
+                    // CdsTween: spring-smooth follow, stable horizon
+                    const tgtCam = new THREE.Vector3(pos.x - 20, 25, pos.z - 20);
+                    const tgtLook = pos.clone();
+                    cdsVec3(camX, camY, camZ, tgtCam, 4, dt);
+                    cdsVec3(tgtX, tgtY, tgtZ, tgtLook, 7, dt);
+                    camera.position.set(camX.value, camY.value, camZ.value);
+                    controls.target.set(tgtX.value, tgtY.value, tgtZ.value);
+
+                } else if (currentCamMode === 'chase') {
+                    // ExpTween: fast position snap, damped look-ahead
+                    const offset = new THREE.Vector3(0, 8, -15);
+                    offset.applyEuler(train.rotation);
+                    const tgtCam = pos.clone().add(offset);
+                    const lookAhead = pos.clone().add(tangent.multiplyScalar(20));
+                    cdsVec3(camX, camY, camZ, tgtCam, 6, dt);
+                    cdsVec3(tgtX, tgtY, tgtZ, lookAhead, 8, dt);
+                    camera.position.set(camX.value, camY.value, camZ.value);
+                    controls.target.set(tgtX.value, tgtY.value, tgtZ.value);
+
+                } else if (currentCamMode === 'cab') {
+                    // Cab POV: direct copy, no latency
+                    const cabPos = pos.clone().add(new THREE.Vector3(0, 1.8, 1).applyEuler(train.rotation));
+                    camera.position.copy(cabPos);
+                    controls.target.copy(pos.clone().add(tangent.multiplyScalar(50)));
+                }
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+    </script>
+<script src=" https://little082003.github.io/portfolio-nav.js\></script>
+</body>
+
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kantawich Mongkolkeha | Resume</title>
+    <!-- Use basic Google Fonts for clean typography without heavy loading -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Modern, lightweight reset and base styles */
+        :root {
+            --primary: #0f172a;
+            --secondary: #3b82f6;
+            --accent: #1e40af;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Prompt', 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .resume-container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .resume-container {
+                flex-direction: row;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background-color: var(--primary);
+            color: white;
+            padding: 3rem 2rem;
+            flex: 0 0 320px;
+        }
+
+        .profile-section {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .profile-img-placeholder {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            font-weight: 700;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .name {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .name-th {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            margin-bottom: 0.5rem;
+        }
+
+        .role {
+            font-size: 0.95rem;
+            color: #93c5fd;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .section-title-sidebar {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            margin-top: 2rem;
+            color: #f8fafc;
+        }
+
+        .contact-list {
+            list-style: none;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        .contact-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .contact-list svg {
+            width: 18px;
+            height: 18px;
+            fill: #93c5fd;
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+
+        .skill-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .skill-item {
+            margin-bottom: 0.8rem;
+        }
+
+        .skill-name {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+            color: #e2e8f0;
+        }
+
+        .skill-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .skill-fill {
+            height: 100%;
+            background-color: var(--secondary);
+            border-radius: 3px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 3rem;
+            flex: 1;
+        }
+
+        .section-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title svg {
+            width: 22px;
+            height: 22px;
+            fill: var(--secondary);
+        }
+
+        .about-text {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            text-align: justify;
+            margin-bottom: 2.5rem;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 1.5rem;
+            border-left: 2px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 2px solid var(--secondary);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 0.3rem;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+        }
+
+        .timeline-date {
+            font-size: 0.8rem;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .timeline-subtitle {
+            font-size: 0.95rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .timeline-desc {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .timeline-list {
+            margin-top: 0.5rem;
+            padding-left: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .timeline-list li {
+            margin-bottom: 0.3rem;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .projects-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .project-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .project-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .project-title svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--secondary);
+        }
+
+        .project-desc {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .resume-container {
+                box-shadow: none;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .sidebar {
+                background-color: #f1f5f9;
+                color: var(--text-dark);
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                border-right: 1px solid var(--border);
+            }
+
+            .name-th,
+            .contact-list,
+            .section-title-sidebar,
+            .skill-name {
+                color: var(--text-dark);
+            }
+
+            .contact-list svg {
+                fill: var(--primary);
+            }
+
+            .skill-bar {
+                background: #e2e8f0;
+            }
+
+            .skill-fill {
+                background-color: var(--text-dark);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="resume-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="profile-section">
+                <div class="profile-img-placeholder">KM</div>
+                <h1 class="name">Kantawich M.</h1>
+                <div class="name-th">กันตะวิชญ์ มงคลเคหา</div>
+                <div class="role">Future Professional Leader</div>
+            </div>
+
+            <h2 class="section-title-sidebar">Contact</h2>
+            <ul class="contact-list">
+                <li>
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                    </svg>
+                    <span>admin@example.com</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                    </svg>
+                    <span>08X-XXX-XXXX</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                    </svg>
+                    <span>พิษณุโลก, ประเทศไทย</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-1.85 0-2.59 1.05-2.96 1.68v-1.4h-3v9.7h3v-5.54c0-1.5.89-1.94 1.94-1.94 1.34 0 1.63 1.12 1.63 2.02v5.44h3m-11.85-9.7H3.6v9.7h3v-9.7M5.04 6.46C4.06 6.46 3.3 7.2 3.3 8.16C3.3 9.1 4.04 9.87 5.02 9.87s1.74-.77 1.74-1.71c0-.96-.76-1.7-1.72-1.7z" />
+                    </svg>
+                    <span>linkedin.com/in/kantawich</span>
+                </li>
+            </ul>
+
+            <h2 class="section-title-sidebar">Soft Skills</h2>
+            <div class="skill-group">
+                <div class="skill-item">
+                    <div class="skill-name"><span>Leadership</span> <span>90%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 90%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>Collaboration</span> <span>95%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 95%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>Project Mgt.</span> <span>85%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>Communication</span> <span>88%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 88%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="section-title-sidebar">Hard Skills</h2>
+            <div class="skill-group">
+                <div class="skill-item">
+                    <div class="skill-name"><span>Structural Thinking</span> <span>85%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>Learning by Doing</span> <span>98%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 98%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>Problem Solving</span> <span>80%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 80%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="section-title-sidebar">Tech Skills ⚡</h2>
+            <div class="skill-group">
+                <div class="skill-item">
+                    <div class="skill-name"><span>Three.js (3D Graphics)</span> <span>70%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 70%; background:#7c3aed;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>HTML / CSS / JavaScript</span> <span>75%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 75%;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>MQTT / IoT / WebSocket</span> <span>65%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 65%; background:#0ea5e9;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>Leaflet.js (Maps)</span> <span>72%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 72%; background:#16a34a;"></div>
+                    </div>
+                </div>
+                <div class="skill-item">
+                    <div class="skill-name"><span>Git &amp; GitHub Pages</span> <span>70%</span></div>
+                    <div class="skill-bar">
+                        <div class="skill-fill" style="width: 70%; background:#ca8a04;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+                Profile
+            </h2>
+            <p class="about-text">
+                ความสนใจด้านงานช่างและวิศวกรรม เริ่มต้นจากการศึกษาพระราชกรณียกิจด้านการต่อเรือของรัชกาลที่ 9 ในวัย 13 ปี
+                ซึ่งหล่อหลอมให้เกิดความหลงใหลในโครงสร้างทางวิศวกรรมและการสร้างสรรค์
+                มีวิสัยทัศน์ในการนำหลักการทางวิศวกรรม เช่น ความสมดุล (Stability) การขับเคลื่อน (Propulsion) และการนำทาง
+                (Navigation) มาประยุกต์ใช้ในการบริหารองค์กรและการทำงานเป็นทีม
+                พร้อมมุ่งมั่นพัฒนาตนเองสู่การเป็นผู้นำและกลุ่มแรงงานผู้เชี่ยวชาญ (Smart Workers)
+            </p>
+
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24">
+                    <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
+                </svg>
+                Education
+            </h2>
+            <div class="timeline-item">
+                <div class="timeline-header">
+                    <div class="timeline-title">วิทยาลัยสารพัดช่างพิษณุโลก</div>
+                    <div class="timeline-date">ปัจจุบัน</div>
+                </div>
+                <div class="timeline-subtitle">ระดับอาชีวศึกษา</div>
+                <p class="timeline-desc">ก้าวเข้าสู่เส้นทางอาชีวศึกษาเพื่อพัฒนาตนเองสู่การเป็นกลุ่มแรงงานผู้เชี่ยวชาญ
+                    (Smart Workers) ตอบโจทย์ Thailand 4.0 โดยเน้นการเรียนรู้จากการปฏิบัติจริง (Learning by Doing)</p>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-header">
+                    <div class="timeline-title">ระดับชั้นมัธยมศึกษาตอนต้น</div>
+                    <div class="timeline-date">พ.ศ. 2560</div>
+                </div>
+                <div class="timeline-subtitle">จังหวัดพิษณุโลก</div>
+                <p class="timeline-desc">
+                    จุดเริ่มต้นของการสร้างจิตสำนึกพลเมืองและการบริหารงานผ่านกิจกรรมนิทรรศการเฉลิมพระเกียรติ</p>
+            </div>
+
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
+                </svg>
+                Leadership
+            </h2>
+            <div class="timeline-item">
+                <div class="timeline-header">
+                    <div class="timeline-title">คณะกรรมการบริหาร (กรรมการ)</div>
+                    <div class="timeline-date">ปัจจุบัน</div>
+                </div>
+                <div class="timeline-subtitle">องค์การนักวิชาชีพในอนาคตแห่งประเทศไทย (อวท.)</div>
+                <ul class="timeline-list">
+                    <li>ร่วมวางแผนนโยบายและตรวจสอบการทำงานของฝ่ายต่างๆ ภายในองค์กร</li>
+                    <li>เป็นตัวแทนของสถาบันในการประชุมระดับจังหวัดและระดับภาค</li>
+                    <li>ส่งเสริมวิถีประชาธิปไตยและการบริหารจัดการอย่างเป็นระบบในสถานศึกษา</li>
+                </ul>
+            </div>
+
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
+                </svg>
+                Projects
+            </h2>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-title">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+                        </svg>
+                        Fix it Center
+                    </div>
+                    <div class="project-desc">ศูนย์ซ่อมสร้างเพื่อชุมชน
+                        นำความรู้ด้านช่างไปแก้ไขปัญหาและบริการประชาชนในพื้นที่อย่างเป็นรูปธรรม</div>
+                </div>
+                <div class="project-card">
+                    <div class="project-title">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                        </svg>
+                        VEC Skills
+                    </div>
+                    <div class="project-desc">การบริหารจัดการและประสานงานสำหรับการแข่งขันทักษะวิชาชีพระดับอาชีวศึกษา
+                        (อศจ.)</div>
+                </div>
+                <div class="project-card" style="grid-column: 1 / -1;">
+                    <div class="project-title">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                        จิตอาสาบำเพ็ญประโยชน์
+                    </div>
+                    <div class="project-desc">สืบสานพระราชปณิธานผ่านการทำกิจกรรมบำเพ็ญประโยชน์ต่อสังคมด้วยใจอาสา</div>
+                </div>
+            </div>
+
+            <!-- ===== WORKSHOP PROJECTS ===== -->
+            <h2 class="section-title" style="margin-top: 2.5rem;">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
+                </svg>
+                PSRU Workshop Projects 🌊
+            </h2>
+            <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:1.5rem;">
+                Workshop: AI Oracle × Web Dev × IoT — มหาวิทยาลัยราชภัฏพิบูลสงคราม, 28 ก.พ. 2569
+            </p>
+            <div class="projects-grid">
+                <div class="project-card" style="border-top: 3px solid #3b82f6;">
+                    <div class="project-title">🗺️ GPS Travel Map</div>
+                    <div class="project-desc" style="margin-bottom:0.8rem;">Interactive dark-mode traveling map from
+                        Chiang Mai to Phitsanulok from GPS CSV data. Real-time track visualization with animated
+                        waypoint markers.</div>
+                    style="font-size:0.72rem; background:#ede9fe; color:#6d28d9; padding:2px 8px;
+                    border-radius:10px;">CdsTween
+                    (Spring Physics)</span>
+                    <span
+                        style="font-size:0.72rem; background:#ede9fe; color:#6d28d9; padding:2px 8px; border-radius:10px;">Procedural
+                        Gen</span>
+                </div>
+                <a href="https://little082003.github.io/travel-3d.html" target="_blank"
+                    style="font-size:0.8rem; color:#8b5cf6; text-decoration:none;">🔗
+                    little082003.github.io/travel-3d.html</a>
+            </div>
+
+            <div class="project-card" style="border-top: 3px solid #0ea5e9; grid-column: 1 / -1;">
+                <div class="project-title">📡 Dustboy 3D Matrix — Live PM2.5 Dashboard</div>
+                <div class="project-desc" style="margin-bottom:0.8rem;">Real-time air quality dashboard connecting
+                    to the Dustboy IoT sensor network via MQTT WebSocket. Sensors are rendered as glowing neon
+                    pillars in a 3D cyber-grid, with heights proportional to PM2.5 AQI levels. Click any pillar to
+                    focus the camera and inspect full sensor telemetry (temperature, humidity, pressure) in a live
+                    HUD.</div>
+                <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:0.6rem;">
+                    <span
+                        style="font-size:0.72rem; background:#e0f7fa; color:#0369a1; padding:2px 8px; border-radius:10px;">Three.js</span>
+                    <span
+                        style="font-size:0.72rem; background:#e0f7fa; color:#0369a1; padding:2px 8px; border-radius:10px;">MQTT.js</span>
+                    <span
+                        style="font-size:0.72rem; background:#e0f7fa; color:#0369a1; padding:2px 8px; border-radius:10px;">WebSocket</span>
+                    <span
+                        style="font-size:0.72rem; background:#e0f7fa; color:#0369a1; padding:2px 8px; border-radius:10px;">ExpTween</span>
+                    <span
+                        style="font-size:0.72rem; background:#e0f7fa; color:#0369a1; padding:2px 8px; border-radius:10px;">IoT</span>
+                    <span
+                        style="font-size:0.72rem; background:#e0f7fa; color:#0369a1; padding:2px 8px; border-radius:10px;">Real-time
+                        Data</span>
+                </div>
+                <a href="https://little082003.github.io/dustboy-3d.html" target="_blank"
+                    style="font-size:0.8rem; color:#0ea5e9; text-decoration:none;">🔗
+                    little082003.github.io/dustboy-3d.html</a>
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <script src=" https://little082003.github.io/portfolio-nav.js\></script>
+</body>
+
+</html>
